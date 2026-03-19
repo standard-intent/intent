@@ -1,0 +1,132 @@
+openapi: 3.1.0
+info:
+  title: SIS-Compatible Intent API
+  version: 1.0.0
+  summary: API for creating, validating, publishing, and retrieving SIS objects
+  description: |x
+    Strict example API for systems that generate and manage SIS v1.0.0 intent objects.
+    The canonical SIS object is distinct from the API resource envelope.
+    Lifecycle metadata such as status, validation state, and publication time
+    are represented in the resource envelope, not in the canonical intent object.
+
+servers:
+  - url: https://api.sovrain.ai
+    description: Production
+  - url: https://sandbox.api.sovrain.ai
+    description: Sandbox
+
+tags:
+  - name: Intents
+    description: Create and manage SIS intent resources
+
+security:
+  - bearerAuth: []
+
+paths:
+  /v1/intents:
+    post:
+      tags: [Intents]
+      operationId: createIntent
+      summary: Create an intent resource
+      description: Creates a new intent resource containing a canonical SIS intent object.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SISIntent'
+            
+      responses:
+        '201':
+          description: Intent resource created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentResource'
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/intents/{intent_id}:
+    get:
+      tags: [Intents]
+      operationId: getIntent
+      summary: Retrieve an intent resource
+      parameters:
+        - $ref: '#/components/parameters/IntentId'
+      responses:
+        '200':
+          description: Intent resource found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentResource'
+        '404':
+          description: Intent resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/intents/{intent_id}/validate:
+    post:
+      tags: [Intents]
+      operationId: validateIntent
+      summary: Validate an intent resource
+      parameters:
+        - $ref: '#/components/parameters/IntentId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntentValidateRequest'
+      responses:
+        '200':
+          description: Validation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentValidateResponse'
+        '404':
+          description: Intent resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/intents/{intent_id}/publish:
+    post:
+      tags: [Intents]
+      operationId: publishIntent
+      summary: Publish an intent resource to implementation
+      parameters:
+        - $ref: '#/components/parameters/IntentId'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntentPublishRequest'
+      responses:
+        '200':
+          description: Intent published
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntentPublishResponse'
+        '404':
+          description: Intent resource not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Intent cannot be published in current state
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
