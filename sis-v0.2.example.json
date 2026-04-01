@@ -1,0 +1,96 @@
+{
+    "intent_id": "550e8400-e29b-41d4-a716-446655440000",
+    "schema_version": "0.2.0",
+    "intent_type": "offer_decision",
+    "created_at": "2026-03-17T18:42:00Z",
+    "source": {
+      "system": "manymoves",
+      "source_ref": "mobile_offer_request",
+      "correlation_id": "corr_789"
+    },
+    "objective": {
+      "objective_id": "123e4567-e89b-12d3-a456-426614174000",
+      "title": "Increase refinance conversions",
+      "objective_type": "growth",
+      "success_metric": "conversion_rate",
+      "target": "+10%",
+      "priority": 1,
+      "time_horizon": "30d"
+    },
+    "actions": [
+      {
+        "action_id": "a987fbc9-4bed-3078-cf07-9141ba07c9f3",
+        "action_type": "show_offer",
+        "action_ref": "refi_offer_candidate_001",
+        "channels": ["in_app"],
+        "priority_hint": 0.8,
+        "justification": "Prequalified member with recent rate-check behavior"
+      }
+    ],
+    "constraints": [
+      {
+        "constraint_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+        "type": "eligibility",
+        "rule": "credit_score > 680",
+        "severity": "block",
+        "scope": "action"
+      }
+    ],
+    "context": {
+      "customer_ref": "123",
+      "segment_ref": "student_refi",
+      "trigger": {
+        "type": "mobile_login",
+        "timestamp": "2026-03-17T18:41:45Z"
+      },
+      "channel_context": ["in_app"],
+      "session_ref": "sess_456",
+      "attributes": {
+        "credit_score": 720,
+        "prequalified": true
+      }
+    },
+    "evaluation": {
+      "status": "complete",
+      "coherence_score": 0.92,
+      "constraint_checks": [
+        {
+          "constraint_id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+          "result": "pass",
+          "message": "Eligibility requirement satisfied"
+        }
+      ],
+      "reason": "Intent is admissible for the selected action"
+    },
+    "decision": {
+      "result": "allow",
+      "selected_action_id": "a987fbc9-4bed-3078-cf07-9141ba07c9f3",
+      "confidence": 0.88,
+      "explanation": "Member meets eligibility and refinance offer is aligned to objective"
+    },
+    "execution_binding": {
+      "binding_status": "bound",
+      "binding_ref": "bind_001",
+      "conditions": [
+        "execute_within_15_minutes",
+        "channel_must_equal_in_app"
+      ],
+      "expiry": "2026-03-17T18:57:00Z"
+    },
+    "evidence": {
+      "explanation": "Offer allowed after eligibility pass and context match",
+      "trace_id": "trace_abc123",
+      "artifacts": [
+        {
+          "type": "eligibility_snapshot",
+          "ref": "elig_run_332"
+        }
+      ]
+    },
+    "extensions": {
+      "financial_services": {
+        "offer_ref": "offer_refi_001",
+        "member_tier": "gold"
+      }
+    }
+  }

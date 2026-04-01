@@ -1,0 +1,389 @@
+{
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://decision-standards.org/sis/v0.2/schema.json",
+    "title": "Standard Intent Specification (SIS) v0.2.0",
+    "description": "Canonical machine-readable specification for expressing intent, evaluating admissibility, and binding execution conditions before action.",
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "intent_id",
+      "schema_version",
+      "intent_type",
+      "created_at",
+      "source",
+      "objective",
+      "actions",
+      "constraints",
+      "context"
+    ],
+    "properties": {
+      "intent_id": {
+        "type": "string",
+        "format": "uuid",
+        "description": "Globally unique identifier for the SIS object."
+      },
+      "schema_version": {
+        "type": "string",
+        "pattern": "^0\\.2\\.0$",
+        "description": "SIS schema version."
+      },
+      "intent_type": {
+        "type": "string",
+        "minLength": 1,
+        "description": "Classification of the intent object."
+      },
+      "created_at": {
+        "type": "string",
+        "format": "date-time",
+        "description": "Timestamp when the SIS object was created."
+      },
+      "source": {
+        "$ref": "#/$defs/source"
+      },
+      "objective": {
+        "$ref": "#/$defs/objective"
+      },
+      "actions": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/action"
+        },
+        "description": "Candidate actions to be evaluated."
+      },
+      "constraints": {
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "$ref": "#/$defs/constraint"
+        },
+        "description": "Constraints that must be evaluated prior to execution."
+      },
+      "context": {
+        "$ref": "#/$defs/context"
+      },
+      "evaluation_hints": {
+        "$ref": "#/$defs/evaluation_hints",
+        "deprecated": true,
+        "description": "Optional advisory inputs for evaluators. Deprecated in favor of explicit evaluation outputs."
+      },
+      "evaluation": {
+        "$ref": "#/$defs/evaluation"
+      },
+      "decision": {
+        "$ref": "#/$defs/decision"
+      },
+      "execution_binding": {
+        "$ref": "#/$defs/execution_binding"
+      },
+      "evidence": {
+        "$ref": "#/$defs/evidence"
+      },
+      "extensions": {
+        "type": "object",
+        "default": {},
+        "description": "Optional namespaced extension container. Core schema must remain valid.",
+        "propertyNames": {
+          "type": "string",
+          "minLength": 1
+        },
+        "additionalProperties": true
+      }
+    },
+    "$defs": {
+      "source": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["system"],
+        "properties": {
+          "system": {
+            "type": "string",
+            "minLength": 1
+          },
+          "source_ref": {
+            "type": "string"
+          },
+          "correlation_id": {
+            "type": "string"
+          }
+        }
+      },
+      "objective": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["title", "success_metric"],
+        "properties": {
+          "objective_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "objective_type": {
+            "type": "string"
+          },
+          "success_metric": {
+            "type": "string",
+            "minLength": 1
+          },
+          "target": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "number"
+          },
+          "time_horizon": {
+            "type": "string"
+          }
+        }
+      },
+      "action": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["action_id", "action_type"],
+        "properties": {
+          "action_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "action_type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "action_ref": {
+            "type": "string"
+          },
+          "channels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "priority_hint": {
+            "type": "number"
+          },
+          "justification": {
+            "type": "string"
+          }
+        }
+      },
+      "constraint": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "rule", "severity", "scope"],
+        "properties": {
+          "constraint_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rule": {
+            "type": "string",
+            "minLength": 1
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["block", "warn"]
+          },
+          "scope": {
+            "type": "string",
+            "enum": ["intent", "action"]
+          }
+        }
+      },
+      "context": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["trigger"],
+        "properties": {
+          "customer_ref": {
+            "type": "string"
+          },
+          "segment_ref": {
+            "type": "string"
+          },
+          "trigger": {
+            "$ref": "#/$defs/trigger"
+          },
+          "channel_context": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "session_ref": {
+            "type": "string"
+          },
+          "attributes": {
+            "type": "object",
+            "default": {},
+            "additionalProperties": true
+          }
+        }
+      },
+      "trigger": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "evaluation_hints": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "confidence_input": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "priority_model": {
+            "type": "string"
+          },
+          "review_recommended": {
+            "type": "boolean"
+          }
+        }
+      },
+      "evaluation": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["complete", "incomplete", "failed"]
+          },
+          "coherence_score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "constraint_checks": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/constraint_check"
+            },
+            "default": []
+          },
+          "reason": {
+            "type": "string"
+          }
+        }
+      },
+      "constraint_check": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["constraint_id", "result"],
+        "properties": {
+          "constraint_id": {
+            "type": "string"
+          },
+          "result": {
+            "type": "string",
+            "enum": ["pass", "fail", "warn", "not_applicable"]
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "decision": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["result"],
+        "properties": {
+          "result": {
+            "type": "string",
+            "enum": ["allow", "deny", "escalate"],
+            "description": "Decision outcome. Decision does not itself imply execution permission."
+          },
+          "selected_action_id": {
+            "type": "string"
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "explanation": {
+            "type": "string"
+          }
+        }
+      },
+      "execution_binding": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["binding_status"],
+        "properties": {
+          "binding_status": {
+            "type": "string",
+            "enum": ["bound", "unbound"],
+            "description": "Execution is only admissible when decision.result = allow and binding_status = bound."
+          },
+          "binding_ref": {
+            "type": "string"
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "default": []
+          },
+          "expiry": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "evidence": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "explanation": {
+            "type": "string"
+          },
+          "trace_id": {
+            "type": "string"
+          },
+          "artifacts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/evidence_item"
+            },
+            "default": []
+          }
+        }
+      },
+      "evidence_item": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "ref"],
+        "properties": {
+          "type": {
+            "type": "string",
+            "minLength": 1
+          },
+          "ref": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  }

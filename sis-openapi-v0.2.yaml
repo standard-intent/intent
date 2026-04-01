@@ -1,0 +1,233 @@
+openapi: 3.1.0
+
+info:
+  title: SIS Intent Evaluation API
+  version: 0.2.0
+  summary: Evaluate SIS objects and return decision plus execution binding
+  description: |
+    Reference API for evaluating Standard Intent Specification (SIS) objects.
+
+    This API evaluates an SIS payload and returns:
+    - evaluation
+    - decision
+    - execution_binding
+    - evidence
+
+    A decision is not executable unless:
+    - decision.result = "allow"
+    - execution_binding.binding_status = "bound"
+
+servers:
+  - url: https://api.sovrain.ai
+    description: Production
+
+
+tags:
+  - name: Evaluation
+    description: Evaluate SIS objects and return admissibility outputs
+  - name: Schema
+    description: Retrieve schema metadata
+
+security:
+  - bearerAuth: []
+
+paths:
+  /v1/evaluate-intent:
+    post:
+      tags: [Evaluation]
+      operationId: evaluateIntent
+      summary: Evaluate an SIS object
+      description: |
+        Evaluates an SIS payload and returns contract-layer outputs.
+
+        The response includes:
+        - evaluation
+        - decision
+        - execution_binding
+        - evidence
+
+        Execution is only admissible when decision.result = "allow"
+        and execution_binding.binding_status = "bound".
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SISIntent'
+      responses:
+        '200':
+          description: SIS evaluation completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SISEvaluationResponse'
+        '400':
+          description: Invalid SIS payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /v1/schema:
+    get:
+      tags: [Schema]
+      operationId: getSchemaMetadata
+      summary: Get schema metadata
+      responses:
+        '200':
+          description: Schema metadata
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties: false
+                properties:
+                  schema_version:
+                    type: string
+                  schema_url:
+                    type: string
+                    format: uri
+                  title:
+                    type: string
+                  description:
+                    type: string
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    SISIntent:
+      type: object
+      description: SIS payload submitted for evaluation
+
+    SISEvaluationResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - intent_id
+        - schema_version
+        - evaluation
+        - decision
+        - execution_binding
+      properties:
+        intent_id:
+          type: string
+          format: uuid
+        schema_version:
+          type: string
+        evaluation:
+          $ref: '#/components/schemas/Evaluation'
+        decision:
+          $ref: '#/components/schemas/Decision'
+        execution_binding:
+          $ref: '#/components/schemas/ExecutionBinding'
+        evidence:
+          $ref: '#/components/schemas/Evidence'
+
+    Evaluation:
+      type: object
+      additionalProperties: false
+      properties:
+        status:
+          type: string
+          enum: [complete, incomplete, failed]
+        coherence_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        constraint_checks:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConstraintCheck'
+        reason:
+          type: string
+
+    ConstraintCheck:
+      type: object
+      additionalProperties: false
+      required: [constraint_id, result]
+      properties:
+        constraint_id:
+          type: string
+        result:
+          type: string
+          enum: [pass, fail, warn, not_applicable]
+        message:
+          type: string
+
+    Decision:
+      type: object
+      additionalProperties: false
+      required: [result]
+      properties:
+        result:
+          type: string
+          enum: [allow, deny, escalate]
+        selected_action_id:
+          type: string
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+        explanation:
+          type: string
+
+    ExecutionBinding:
+      type: object
+      additionalProperties: false
+      required: [binding_status]
+      properties:
+        binding_status:
+          type: string
+          enum: [bound, unbound]
+        binding_ref:
+          type: string
+        conditions:
+          type: array
+          items:
+            type: string
+        expiry:
+          type: string
+          format: date-time
+
+    Evidence:
+      type: object
+      additionalProperties: false
+      properties:
+        explanation:
+          type: string
+        trace_id:
+          type: string
+        artifacts:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvidenceArtifact'
+
+    EvidenceArtifact:
+      type: object
+      additionalProperties: false
+      required: [type, ref]
+      properties:
+        type:
+          type: string
+        ref:
+          type: string
+
+    ErrorResponse:
+      type: object
+      additionalProperties: false
+      required: [error]
+      properties:
+        error:
+          type: object
+          additionalProperties: false
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
